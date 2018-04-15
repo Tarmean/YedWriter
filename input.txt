@@ -1,0 +1,85 @@
+Kunde:
+    Email-Adresse!
+    Vorname
+    Nachname
+    Passwort
+kunde_hat_adresse:
+    *Kunde
+    *Adresse [1,N]
+Adresse:
+    Strasse
+    Hausnummer
+    PLZ
+    Ort
+angemeldet:
+    *Kunde [0,N]
+    *Newsletter [0,N]
+kunde_hat_warenkorb:
+    *Kunde [0,N]
+    *Warenkorb
+
+Premiumkunde(Kunde):
+    Ablaufdatum
+    Photo [0,1]
+Lieferabo(Warenkorb):
+    Beginn
+    Ende
+    Intervall
+
+Angestellter(Kunde):
+    Gehalt
+    Job-Bezeichnung
+
+Newsletter:
+    Betreff
+    Text
+    Datum
+erstellt_von:
+    *Angestellter [0,N]
+    *Newsletter
+newsletter_enthält:
+    *Newsletter [3,10]
+    *Artikel [0,N]
+
+Lieferdienst:
+    Bezeichnung
+    Tarif
+stellt_zu:
+    Datum
+    *Lieferdienst [0,N]
+    *Warenkorb [0,1]
+
+Artikel:
+    Beschreibung
+    Bezeichnung
+gehört_zu:
+    *Artikel [0,N]
+    *Schlagwort [0,N]
+hat_bild:
+    *Artikel [0,1]
+    *Bild [1,1]
+Bild:
+    Bild!
+Schlagwort:
+    Wort!
+empfielt:
+    *Artikel [0,3]
+    *Artikel [0,N]
+
+Anbieter:
+    Bezeichnung
+Angebot(Artikel):
+    Preis
+bietet_an:
+    *Anbieter [0,N]
+    *Angebot [1,N]
+    Bestand
+
+Warenkorb:
+    Bestellstatus
+    Bestelldatum [0,1]
+warenkorb_enthält:
+    *Warenkorb [0,N]
+    *Angebot [0,N]
+    *Anbieter [0,N]
+    Anzahl

@@ -1,0 +1,66 @@
+# This YAML file describes your package. Stack will automatically generate a
+# Cabal file when you run `stack build`. See the hpack website for help with
+# this file: <https://github.com/sol/hpack>.
+benchmarks:
+  YedWriter-benchmarks:
+    dependencies:
+    - base
+    - YedWriter
+    - criterion
+    ghc-options:
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-N
+    main: Main.hs
+    source-dirs: benchmark
+category: Other
+description: YedWriter is a new Haskeleton package.
+executables:
+  YedWriter:
+    dependencies:
+    - base
+    - YedWriter
+    ghc-options:
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-N
+    main: Main.hs
+    source-dirs: executable
+extra-source-files:
+- CHANGELOG.md
+- LICENSE.md
+- package.yaml
+- README.md
+- stack.yaml
+ghc-options: -Wall
+github: githubuser/YedWriter
+library:
+  dependencies:
+  - megaparsec
+  - text
+  - base
+  - hxt
+  - containers
+  - lens
+  - mtl
+  source-dirs: library
+  ghc-options:
+      - -XOverloadedStrings
+license: MIT
+maintainer: Author name here
+name: YedWriter
+synopsis: A new Haskeleton package.
+tests:
+  YedWriter-test-suite:
+    dependencies:
+    - base
+    - YedWriter
+    - tasty
+    - tasty-hspec
+    ghc-options:
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-N
+    main: Main.hs
+    source-dirs: test-suite
+version: '0.0.0'
