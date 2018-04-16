@@ -104,8 +104,8 @@ mkConnections e = mapArr (mkConnection $ e^.ident) (e^.connections)
 
 mkConnection :: (ArrowXml a) => Ident -> Connection -> a b XmlTree
 mkConnection name con = case con^.kind of
-    Foreign -> mkLabeledEdge conf
-    Super -> mkLabeledEdge $ conf & arrow .~ "standard"
+    Foreign o -> mkLabeledEdge conf
+    Super _ -> mkLabeledEdge $ conf & arrow .~ "standard"
     _ -> mkAttribute name con 
   where
     conf = defs 
@@ -119,13 +119,27 @@ mkAttribute owner con
              & ident .~ attrIdent
              & label .~ con^.target._Wrapped
              & kind .~ "com.yworks.entityRelationship.attribute"
-             & underlined .~ con^.kind.to(==Primary) )
-  <+> mkLabeledEdge (defs
-             & source .~ attrIdent
-             & target .~ owner
-             & multiplicity .~ con^.multiplicity)
-    where attrIdent = owner <> "_" <> con^.target
-
+             & underlined .~ con^.primary )
+  <+> attrEdge
+    where
+      attrIdent = owner <> "_" <> con^.target
+      attrEdge
+        | con ^. multiplicity == Optional
+            = mkLabeledEdge
+            $ defs
+            & source .~ attrIdent
+            & target .~ owner
+            & multiplicity .~ One
+            & arrow .~  arrowOptional
+        | con ^. multiplicity == One
+            = mkLabeledEdge
+            $ defs
+            & source .~ attrIdent
+            & target .~ owner
+            & multiplicity .~ One
+        | otherwise = error "attributes can't have multiplicity"
+       
+arrowOptional = "crows_foot_optional"
 -- Fricking glorified ListT IO grumble grumble
 mapArr :: ArrowPlus cat => (t -> cat a b) -> [t] -> cat a b
 mapArr f ls = go ls
@@ -204,7 +218,7 @@ mkLabeledEdge conf = mkelem "edge"
         ]
         [mkData "d9" [], mkData "d10" [polyEdge]] 
   where
-    edgeIdent = conf^.source._String <> "-" <> conf^.target._String <> conf^.multiplicity._String
+    edgeIdent = conf^.source._String <> "-" <> conf^.target._String <> conf^.multiplicity.to show
     polyEdge = qelem "PolyLineEdge" []
         [ qelem "Path" ["sx" =: "0.0", "sy" =: "0.0", "tx" =: "0.0", "ty" =:"0.0"] []
         , qelem "LineStyle" ["color"=:"#000000", "type"=:"line", "width"=:"1.0"] []
@@ -232,7 +246,7 @@ mkLabeledEdge conf = mkelem "edge"
             , "x"=:"-23.13330078125"
             , "y"=:"-19.96875"
             ]
-            [ txt (conf^.multiplicity._String <> "\n")
+            [ txt (conf^.multiplicity.to show <> "\n")
             , qelem "PreferredPlacementDescriptor"
                 [ "angle"=:"0.0"
                 , "angleOffsetOnRightSide"=:"0" 

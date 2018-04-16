@@ -4,21 +4,27 @@ module Types (module Types, module Control.Lens, Text, module Data.String, modul
 import Control.Lens
 import Data.String
 import Data.Text (Text)
-import Data.Monoid
 import Data.Text.Strict.Lens
 newtype Ident = Ident { _unNode :: Text } deriving (Show, IsString, Monoid, Eq, Ord)
-newtype Multiplicity = Multiplicity { _unMultiplicity :: Text } deriving (Show, IsString, Eq)
+data Multiplicity = One | Optional | Other Text
+    deriving (Eq)
+
+instance Show Multiplicity where
+    show One = ""
+    show Optional = "0,1"
+    show (Other t) = t^.unpacked
 makeWrapped ''Ident
-makeWrapped ''Multiplicity
+makeLenses ''Multiplicity
 
 class Default a where
     defs :: a
-data EdgeKind = Primary | Foreign | Super | Attr | Owned deriving (Show, Eq)
+data EdgeKind = Foreign Ident | Super Ident | Attr | Owned deriving (Show, Eq)
 
 data Connection = Connection
     { _connectionTarget :: Ident
     , _connectionMultiplicity :: Multiplicity
     , _connectionKind :: EdgeKind
+    , _connectionPrimary :: Bool
     } deriving (Show, Eq)
 makeFields ''Connection
 data Entity  = Entity
@@ -27,8 +33,16 @@ data Entity  = Entity
     } deriving (Show, Eq)
 makeFields ''Entity
 
+isReference :: EdgeKind -> Bool
+isReference (Super _) = True
+isReference (Foreign _) = True
+isReference _ = False
+
+
 isRelationship :: Entity -> Bool 
-isRelationship = anyOf (connections . each . kind) (==Foreign)
+isRelationship = anyOf (connections . each . kind) (isForeignAttr)
+  where isForeignAttr (Foreign _) = True
+        isForeignAttr _ = False
 
 data EdgeConfig = EdgeConfig
     { _edgeConfigSource :: Ident
@@ -51,6 +65,7 @@ makeFields ''NodeConfig
 instance Default Connection where
     defs = Connection
          { _connectionKind = error "edge kind not set"
+         , _connectionPrimary = error "primary not set"
          , _connectionTarget = error "Connection target not set"
          , _connectionMultiplicity = error "Multiplicity not set"
          }

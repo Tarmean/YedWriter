@@ -1,85 +1,80 @@
 Kunde:
-    Email-Adresse!
+    Bezeichnung!
+    Apotheken-Bescheinigung [0,1]
+
+Konto:
+    Bezeichnung
+    Zahlungsziel
+    Zahlungsart
+kunde_hat_konto:
+    *Konto!
+    *Kunde [0,N]
+
+Ansprechpartner(Person):
+    Fachabteilung
+hat_ansprechpartner:
+    *Kunde [1,N]
+    *Ansprechpartner!
+
+Auftrag:
+    Erstellungsdatum
+    Liefertermin
+auftrag_gehört_zu:
+    *Konto [0,N]
+    *Auftrag!
+auftrag_verbucht_medikament:
+    *Auftrag! [1,N]
+    *Medikament! [0,N]
+    Menge
+
+Medikament:
+    Produktname
+    Kennzeichnung
+    # Sollte staffelpreis eigene entity sein?
+    Einkaufsstaffelpreis [0,1]
+    Verkaufsstaffelpreis [0,1]
+
+Mitarbeiter(Person):
+    Mitarbeiternummer!
+    Passwort
+erstellt_von:
+    *Mitarbeiter [0,N]
+    *Auftrag!
+hat_vorgesetzer:
+    *Mitarbeiter! [0,N]
+    *Mitarbeiter! [0,N]
+
+Person:
     Vorname
     Nachname
-    Passwort
-kunde_hat_adresse:
-    *Kunde
-    *Adresse [1,N]
+
+hat_kontakteintrag_person:
+    *Kontakteintrag!
+    *Person [1,N]
+hat_kontakteintrag_kunde:
+    *Kontakteintrag!
+    *Kunde [1,N]
+
+Kontakteintrag:
+    Telefonnummer!
+    E-Mail-Adresse [0,1]
+    Faxnummer [0,1]
+kontakteintrag_hat_addresse:
+    *Kontakteintrag!
+    *Adresse [0,N]
 Adresse:
-    Strasse
+    Straße
     Hausnummer
     PLZ
     Ort
-angemeldet:
-    *Kunde [0,N]
-    *Newsletter [0,N]
-kunde_hat_warenkorb:
-    *Kunde [0,N]
-    *Warenkorb
+    
+Kundenbetreuer(Mitarbeiter):
+    Fachgebiet
+    Bezierk
 
-Premiumkunde(Kunde):
-    Ablaufdatum
-    Photo [0,1]
-Lieferabo(Warenkorb):
-    Beginn
-    Ende
-    Intervall
+hat_kundenbetreuer:
+    *Kunde! [1,3]
+    *Kundenbetreuer! [1,N]
 
-Angestellter(Kunde):
-    Gehalt
-    Job-Bezeichnung
-
-Newsletter:
-    Betreff
-    Text
-    Datum
-erstellt_von:
-    *Angestellter [0,N]
-    *Newsletter
-newsletter_enthält:
-    *Newsletter [3,10]
-    *Artikel [0,N]
-
-Lieferdienst:
-    Bezeichnung
-    Tarif
-stellt_zu:
-    Datum
-    *Lieferdienst [0,N]
-    *Warenkorb [0,1]
-
-Artikel:
-    Beschreibung
-    Bezeichnung
-gehört_zu:
-    *Artikel [0,N]
-    *Schlagwort [0,N]
-hat_bild:
-    *Artikel [0,1]
-    *Bild [1,1]
-Bild:
-    Bild!
-Schlagwort:
-    Wort!
-empfielt:
-    *Artikel [0,3]
-    *Artikel [0,N]
-
-Anbieter:
-    Bezeichnung
-Angebot(Artikel):
-    Preis
-bietet_an:
-    *Anbieter [0,N]
-    *Angebot [1,N]
-    Bestand
-
-Warenkorb:
-    Bestellstatus
-    Bestelldatum [0,1]
-warenkorb_enthält:
-    *Warenkorb [0,N]
-    *Angebot [0,N]
-    *Anbieter [0,N]
-    Anzahl
+Callcenter-Mitarbeiter(Mitarbeiter):
+    Zertifizierung_Zweitsprache

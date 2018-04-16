@@ -5,7 +5,7 @@ import Text.Megaparsec as P
 import Text.Megaparsec.Text as PT
 import qualified Text.Megaparsec.Lexer as L
 import Types
-import Data.Text (Text)
+import Data.Text (Text, pack)
 import Data.Char(isSpace)
 import Data.Maybe (fromMaybe, maybeToList)
 
@@ -18,42 +18,51 @@ parseFormat = many parseEntry <* eof
 parseEntry :: PT.Parser Entity
 parseEntry = (comment >> parseEntry) <|> lexeme parseDef
 
-parseAttribute :: PT.Parser Connection
-parseAttribute = (comment >> parseAttribute) <|> parseInner
-parseInner :: PT.Parser Connection
-parseInner = do
-    isForeign <- optional (Foreign <$ char '*')
+parseAttribute :: Ident -> PT.Parser Connection
+parseAttribute owner = (comment >> parseAttribute owner) <|> parseInner owner
+parseInner :: Ident -> PT.Parser Connection
+parseInner owner = do
+    isForeign <- optional (Foreign owner <$ char '*')
     name <- parseIdent
-    isPrimary <- optional (Primary <$ char '!')
+    isPrimary <- optional (True <$ char '!')
     mult <- try parseMultiplicity
-    let conType = fromMaybe Attr $ isForeign <|> isPrimary
+    let conType = fromMaybe Attr $ isForeign
+        primType = fromMaybe False isPrimary
+
     return $ defs
         & kind .~ conType
+        & primary .~ primType
         & multiplicity .~ mult
         & target .~ name
 
 parseMultiplicity :: Parser Multiplicity
-parseMultiplicity = fromString <$> ((char ' ' >> some (satisfy (not.isSpace))) <|> pure "[1,1]")
+parseMultiplicity = do 
+    mult <- optional $ char ' ' >> some (satisfy (not.isSpace))
+    return $ case mult of
+        Just "[1,1]" -> One
+        Nothing -> One
+        Just "[0,1]" -> Optional
+        Just s -> Other (pack s)
+
 parseDef :: PT.Parser Entity
 parseDef = L.indentBlock sp $ do
     name <-parseIdent
     supertype <- optional $ between (char '(') (char ')') $ parseIdent
     _ <- char ':'
-    return (L.IndentSome Nothing (return . mkEntity name supertype) parseAttribute)
+    return (L.IndentMany Nothing (return . mkEntity name supertype) (parseAttribute name))
 
 mkEntity :: Ident -> (Maybe Ident) -> [Connection] -> Entity
 mkEntity name supertype attribs = Entity name (superCon ++ attribs) 
   where
     superCon = superDef <$> maybeToList supertype 
     superDef super = defs
-        & kind .~ Super
+        & kind .~ Super super
         & target .~ super
-        & multiplicity .~ ""
+        & multiplicity .~ One
+        & primary .~ True
 
 parseIdent :: IsString a => Parser a
-parseIdent = parseText $ oneOf ("_-"::String)
-parseText :: IsString a => Parser Char -> Parser a
-parseText c = fromString <$> some (c <|> letterChar)
+parseIdent = fmap fromString $ some $ satisfy (\c -> not (isSpace c) && c `notElem` ("():!" :: String))
 
 comment :: PT.Parser ()
 comment = char '#' >> skipMany (satisfy (/='\n')) >> space
